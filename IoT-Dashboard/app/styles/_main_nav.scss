@@ -15,9 +15,13 @@ nav select {
 }
 
 .pivotal-logo {
-  width: 193px;
-  height: $main-nav-height;
-  background-image: url('../images/pivotal.png');
+  width: 317px;
+  height: 100%;
+  background-image: url('../images/dell.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position-x: -1px;
+  background-position-y: -112px;
 }
 
 ul.panel-links {
