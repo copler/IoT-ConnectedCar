@@ -18,7 +18,7 @@ angular
 
 angular.module('services.config', [])
   .constant('configuration', {
-    baseUrl: 'http://23.92.235.246:8080'
+    baseUrl: 'http://193.200.33.19:8080'
   });
 
 'use strict';
