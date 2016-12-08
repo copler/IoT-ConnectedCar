@@ -43,7 +43,7 @@ import org.springframework.data.gemfire.repository.config.EnableGemfireRepositor
 @SpringBootApplication
 public class Main {
 
-	@Bean
+	//@Bean
 	PoolFactoryBean poolFactoryBean(@Value("${gf.server.port}") int serverPort,
 			@Value("${gf.server.host}") String serverHost) throws Exception {
 		PoolFactoryBean factoryBean = new PoolFactoryBean();
@@ -55,9 +55,11 @@ public class Main {
 	}
 
 	@Bean
-	ClientCache cache() {
-		return new ClientCacheFactory().create();
+	ClientCache cache(@Value("${gf.server.port}") int serverPort,
+					  @Value("${gf.server.host}") String host) {
+		return new ClientCacheFactory().addPoolServer(host, serverPort).create();
 	}
+
 
 	@Bean
 	@SuppressWarnings("rawtypes")
