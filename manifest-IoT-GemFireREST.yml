@@ -1,0 +1,14 @@
+---
+
+applications:
+
+- name: IoT-GemFireREST
+  memory: 512M
+  buildpack: java_buildpack
+  path: IoT-GemFireREST/build/libs/IoT-GemFireREST.jar
+  instances: 1
+  random-route: false
+  route: iot-gemfirerest
+  host: iot-gemfirerest
+  env:
+    SPRING_PROFILES_ACTIVE: pcf
