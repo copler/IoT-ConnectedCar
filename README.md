@@ -120,8 +120,15 @@ dashboard's documentation).  With the various build tools installed installed, y
 build the dashboard via the following from the root of the IoT-Dashboard module:
 
 ```
-$ grunt clean build
+$ grunt clean build --buildProfileParameter=staging
 ```
+
+buildProfileParameter it's a param for choosing server with rest services. 
+
+Available variants: development, staging, production.
+
+Default value: development
+
 
 The output of this process will end up in `IoT-Dashboard/src/main/resources/public` for 
 Spring Boot packaging.
