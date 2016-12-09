@@ -9,6 +9,14 @@
 
 module.exports = function (grunt) {
 
+  var buildProfileParameter = grunt.option('buildProfileParameter');
+
+  if (buildProfileParameter === '' || typeof(buildProfileParameter) == "undefined") {
+    buildProfileParameter = 'development';
+  }
+
+  console.log('Build Profile Parameter is: ' + buildProfileParameter)
+
   // Load grunt tasks automatically
   require('load-grunt-tasks')(grunt);
 
@@ -366,23 +374,10 @@ module.exports = function (grunt) {
     },
 
     replace: {
-      development: {
+      buildProfile: {
         options: {
           patterns: [{
-            json: grunt.file.readJSON('./config/environments/development.json')
-          }]
-        },
-        files: [{
-          expand: true,
-          flatten: true,
-          src: ['./config/config.js'],
-          dest: '<%= yeoman.app %>/scripts/services/'
-        }]
-      },
-      production: {
-        options: {
-          patterns: [{
-            json: grunt.file.readJSON('./config/environments/production.json')
+            json: grunt.file.readJSON('./config/environments/' + buildProfileParameter + '.json')
           }]
         },
         files: [{
@@ -410,7 +405,7 @@ module.exports = function (grunt) {
     }
 
     grunt.task.run([
-      'replace:development',
+      'replace:buildProfile',
       'clean:server',
       'concurrent:server',
       'autoprefixer',
@@ -425,7 +420,7 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('test', [
-    'replace:development',
+    'replace:buildProfile',
     'jshint',
     'clean:server',
     'concurrent:test',
@@ -435,7 +430,7 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('build', [
-    'replace:production',
+    'replace:buildProfile',
     'clean:dist',
     'useminPrepare',
     'concurrent:dist',
@@ -445,7 +440,6 @@ module.exports = function (grunt) {
     'cssmin',
     //'filerev',
     'usemin',
-    'replace:development',
   ]);
 
   grunt.registerTask('default', [
