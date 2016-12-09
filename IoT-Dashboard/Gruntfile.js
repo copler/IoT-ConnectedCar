@@ -10,9 +10,28 @@
 module.exports = function (grunt) {
 
   var buildProfileParameter = grunt.option('buildProfileParameter');
+  var paramForString = '${param}';
+  var pathToProfileParams = './config/environments/' + paramForString + '.json';
 
   if (buildProfileParameter === '' || typeof(buildProfileParameter) == "undefined") {
-    buildProfileParameter = 'development';
+    pathToProfileParams = pathToProfileParams.replace(paramForString, 'development');
+  }
+
+  pathToProfileParams = pathToProfileParams.replace(paramForString, buildProfileParameter);
+
+  if (!grunt.file.isFile(pathToProfileParams)) {
+       grunt.fail.fatal("Problems with finding file with name: " + buildProfileParameter
+       + '.json. Available profiles are: ' + getAvailableProfiles());
+  }
+
+  function getAvailableProfiles() {
+    var files = grunt.file.expand('./config/environments/*.json');
+    var result = '';
+    for (var i=0; i < files.length; i++) {
+       result = result + files[i].split("/").pop().split('.')[0] + ' ';
+    }
+
+    return result;
   }
 
   console.log('Build Profile Parameter is: ' + buildProfileParameter)
@@ -377,7 +396,7 @@ module.exports = function (grunt) {
       buildProfile: {
         options: {
           patterns: [{
-            json: grunt.file.readJSON('./config/environments/' + buildProfileParameter + '.json')
+            json: grunt.file.readJSON(pathToProfileParams)
           }]
         },
         files: [{
