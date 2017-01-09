@@ -14,11 +14,13 @@ buildscript {
     }
 	dependencies {
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.1.4.RELEASE'
-		classpath 'com.moowork.gradle:gradle-grunt-plugin:0.6'
-		classpath 'org.codehaus.groovy:groovy-backports-compat23:2.3.5'
-		classpath 'com.moowork.gradle:gradle-node-plugin:0.7'
-		classpath 'org.springframework.xd:spring-xd-module-plugin:1.1.0.RELEASE'
-	}
+        classpath 'com.moowork.gradle:gradle-grunt-plugin:0.6'
+        classpath 'org.codehaus.groovy:groovy-backports-compat23:2.3.5'
+        classpath 'com.moowork.gradle:gradle-node-plugin:0.7'
+        classpath 'org.springframework.xd:spring-xd-module-plugin:1.1.0.RELEASE'
+
+        classpath 'org.cloudfoundry:cf-gradle-plugin:1.1.2'
+    }
 }
 
 ext {
@@ -185,14 +187,26 @@ project('IoT-GemFireREST') {
 		enabled = true
 	}
 
-	dependencies {
-		compile project(":IoT-GemFireCommons")
-		compile "org.springframework.boot:spring-boot-starter-data-rest"
-		compile "org.springframework.boot:spring-boot-starter-data-gemfire"
-		compile "org.springframework.boot:spring-boot-autoconfigure"
-		compile "org.hsqldb:hsqldb"
-		testCompile("junit:junit")
-	}
+    dependencies {
+        compile project(":IoT-GemFireCommons")
+        compile "org.springframework.boot:spring-boot-starter-data-rest"
+        compile "org.springframework.boot:spring-boot-starter-data-gemfire"
+        compile "org.springframework.boot:spring-boot-autoconfigure"
+        compile "org.hsqldb:hsqldb"
+        testCompile("junit:junit")
+    }
+
+    apply plugin: 'cloudfoundry'
+
+    cloudfoundry {
+        target = "https://api.run.pivotal.io"
+        space = "development"
+        file = file("./build/libs/IoT-GemFireREST.jar")
+        uri = "test-r.cfapps.io"
+        memory = 256
+        instances = 1
+        services { }
+    }
 }
 
 project('IoT-CarSimulator') {
@@ -292,6 +306,18 @@ project('IoT-Dashboard') {
 //	build {
 //		it.dependsOn tasks['grunt_build']
 //	}
+
+    apply plugin: 'cloudfoundry'
+
+    cloudfoundry {
+        target = "https://api.run.pivotal.io"
+        space = "development"
+        file = file("./build/libs/IoT-Dashboard.jar")
+        uri = "test-d.cfapps.io"
+        memory = 256
+        instances = 1
+        services { }
+    }
 }
 
 project('IoT-GemFireLoader') {
