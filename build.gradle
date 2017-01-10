@@ -199,10 +199,10 @@ project('IoT-GemFireREST') {
     apply plugin: 'cloudfoundry'
 
     cloudfoundry {
-        target = "https://api.run.pivotal.io"
-        space = "development"
+        target = "https://api.system.pcf.mod.ilcoe.lab.emc.com"
+        space = "system"
         file = file("./build/libs/IoT-GemFireREST.jar")
-        uri = "test-r.cfapps.io"
+        uri = "pcf-rest-app.apps"
         memory = 256
         instances = 1
         services { }
@@ -310,10 +310,10 @@ project('IoT-Dashboard') {
     apply plugin: 'cloudfoundry'
 
     cloudfoundry {
-        target = "https://api.run.pivotal.io"
-        space = "development"
+        target = " https://api.system.pcf.mod.ilcoe.lab.emc.com"
+        space = "system"
         file = file("./build/libs/IoT-Dashboard.jar")
-        uri = "test-d.cfapps.io"
+        uri = "pcf-dashboard-app.apps"
         memory = 256
         instances = 1
         services { }
