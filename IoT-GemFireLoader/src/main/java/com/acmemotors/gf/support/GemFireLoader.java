@@ -24,15 +24,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.acmemotors.rest.JourneysRepository;
-import com.acmemotors.rest.domain.JourneyDestination;
-import com.acmemotors.rest.domain.Journeys;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import com.acmemotors.rest.JourneysRepository;
+import com.acmemotors.rest.domain.JourneyDestination;
+import com.acmemotors.rest.domain.Journeys;
 
 /**
  * Provides facilities to load GemFire with the journeys identified by the batch training.
@@ -43,84 +43,106 @@ import org.springframework.util.StringUtils;
 @Component
 public class GemFireLoader {
 
-	@Autowired
-	private JourneysRepository repository;
-	private ObjectMapper mapper = new ObjectMapper();
+    @Autowired
+    private JourneysRepository repository;
+    private ObjectMapper mapper = new ObjectMapper();
 
-	/**
-	 * Spring Data repository for saving {@link JourneyDestination} instances.
-	 *
-	 * @param repository Spring Data Repository used for persistence
-	 */
-	public void setRepository(JourneysRepository repository) {
-		this.repository = repository;
-	}
+    /**
+     * Spring Data repository for saving {@link JourneyDestination} instances.
+     *
+     * @param repository Spring Data Repository used for persistence
+     */
+    public void setRepository(JourneysRepository repository) {
+        this.repository = repository;
+    }
 
-	/**
-	 * Reads the input file, creates {@link JourneyDestination} instances for each record
-	 * and persists them into GemFire.
-	 *
-	 * @param dataFile location of the file to be imported
-	 * @throws IOException if the file cannot be read.
-	 */
-	@SuppressWarnings("unchecked")
-	public void run(String dataFile) throws IOException {
-		BufferedReader br =
-				new BufferedReader(new InputStreamReader(new FileInputStream(dataFile)));
-		
-		String line = null;
+    /**
+     * Reads the input file, creates {@link JourneyDestination} instances for each record
+     * and persists them into GemFire.
+     *
+     * @param dataFile location of the file to be imported
+     * @throws IOException if the file cannot be read.
+     */
+    @SuppressWarnings("unchecked")
+    public void run(String dataFile) throws IOException {
+        BufferedReader br =
+                new BufferedReader(new InputStreamReader(new FileInputStream(dataFile)));
 
-		while((line = br.readLine()) != null) {
-			Journeys curJourneys = mapJourneys(line);
+        String line = null;
 
-			if(curJourneys != null) {
-				repository.save(curJourneys);
-			}
-		}
+        while((line = br.readLine()) != null) {
+            Journeys curJourneys = mapJourneys(line);
 
-		br.close();
-	}
+            if(curJourneys != null) {
+                repository.save(curJourneys);
+            }
+        }
 
-	/**
-	 * Maps the provided line into a {@link Journeys}
-	 *
-	 * @param line source JSON
-	 * @return a Journeys instance if the line is valid, null it if it's not.
-	 * @throws IOException if line cannot be parsed.
-	 */
-	@SuppressWarnings("unchecked")
-	protected Journeys mapJourneys(String line) throws IOException {
-		if(StringUtils.hasText(line)) {
-			Map<String, Object> map = mapper.readValue(line,
-					new TypeReference<HashMap<String,Object>>(){});
+        br.close();
+    }
 
-			List<JourneyDestination> destinations = new ArrayList<>();
+    /**
+     * Maps the provided line into a {@link Journeys}
+     *
+     * @param line source JSON
+     * @return a Journeys instance if the line is valid, null it if it's not.
+     * @throws IOException if line cannot be parsed.
+     */
+    @SuppressWarnings("unchecked")
+    protected Journeys mapJourneys(String line) throws IOException {
+        if(StringUtils.hasText(line)) {
+            Map<String, Object> map = mapper.readValue(line,
+                    new TypeReference<HashMap<String,Object>>(){});
 
-			if(map.containsKey("clusters") && StringUtils.hasText((String) map.get("vin"))) {
-				Map<String, Object> jsonDestinations =
-						(Map<String, Object>) map.get("clusters");
+            List<JourneyDestination> destinations = new ArrayList<>();
+            List<JourneyDestination> sites = new ArrayList<>();
 
-				for (Map.Entry<String, Object> jsonObject : jsonDestinations.entrySet()) {
-					Map<String, Object> destinationValues =
-							(Map<String, Object>) jsonObject.getValue();
-					JourneyDestination curDestination = new JourneyDestination(
-							(String) destinationValues.get("name"),
-							(Double) destinationValues.get("lat"),
-							(Double) destinationValues.get("long"),
-							(String) destinationValues.get("address"));
+            String vin = (String) map.get("vin");
 
-					destinations.add(curDestination);
-				}
+            if (StringUtils.hasText(vin)) {
+                if (map.containsKey("clusters")) {
+                    Map<String, Object> jsonDestinations =
+                            (Map<String, Object>) map.get("clusters");
 
-				return new Journeys((String) map.get("vin"), destinations);
-			}
-			else {
-				throw new IllegalArgumentException(
-						"Line was not able to be parsed: " + line);
-			}
-		}
-		else {
-			return null;
-		}
-	}
+                    for (Map.Entry<String, Object> jsonObject : jsonDestinations.entrySet()) {
+                        Map<String, Object> destinationValues =
+                                (Map<String, Object>) jsonObject.getValue();
+                        JourneyDestination curDestination = new JourneyDestination(
+                                (String) destinationValues.get("name"),
+                                (Double) destinationValues.get("lat"),
+                                (Double) destinationValues.get("long"),
+                                (String) destinationValues.get("address"));
+
+                        destinations.add(curDestination);
+                    }
+                }
+
+                if (map.containsKey("sites")) {
+                    List<Object> jsonDestinations =
+                            (List<Object>) map.get("sites");
+
+                    for (Object jsonObject : jsonDestinations) {
+                        Map<String, Object> destinationValues =
+                                (Map<String, Object>) jsonObject;
+                        JourneyDestination curSite = new JourneyDestination(
+                                (String) destinationValues.get("name"),
+                                (Double) destinationValues.get("latitude"),
+                                (Double) destinationValues.get("longitude"),
+                                (String) destinationValues.get("address"));
+
+                        sites.add(curSite);
+                    }
+                }
+
+                return new Journeys(vin, destinations, sites);
+            }
+            else {
+                throw new IllegalArgumentException(
+                        "Line was not able to be parsed: " + line);
+            }
+        }
+        else {
+            return null;
+        }
+    }
 }

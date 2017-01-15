@@ -9,6 +9,7 @@ include 'IoT-EnrichmentTransformer'
 include 'IoT-OBD2Controller'
 include 'IoT-GemFireREST'
 include 'IoT-GemFireTransformer'
+include 'IoT-GemFireEnricher'
 include 'IoT-Data-Science'
 include 'IoT-DataFilter'
 

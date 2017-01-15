@@ -398,6 +398,23 @@ project('IoT-GemFireTransformer') {
 	}
 }
 
+project('IoT-GemFireEnricher') {
+    apply plugin: 'spring-xd-module'
+
+    bootRepackage {
+        enabled = true
+    }
+
+    dependencies {
+        compile project(":IoT-GemFireCommons")
+        compile("org.springframework.integration:spring-integration-core")
+        compile "org.springframework.boot:spring-boot-starter-data-gemfire"
+        compile "org.springframework.boot:spring-boot-autoconfigure"
+        compile "org.hsqldb:hsqldb"
+        testCompile("junit:junit")
+    }
+}
+
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
 	gradleVersion = '1.12'

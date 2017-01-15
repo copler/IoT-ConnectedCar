@@ -30,34 +30,46 @@ import org.springframework.data.gemfire.mapping.Region;
 @Region("journeys")
 public class Journeys implements Serializable {
 
-	private static final long serialVersionUID = 1;
+    private static final long serialVersionUID = 1;
 
-	@Id
-	private String vin;
-	private List<JourneyDestination> destinations;
+    @Id
+    private String vin;
+    private List<JourneyDestination> destinations;
+    private List<JourneyDestination> sites;
 
-	@PersistenceConstructor
-	public Journeys(String vin, List<JourneyDestination> destinations) {
-		this.vin = vin;
-		this.destinations = destinations;
-	}
+    @PersistenceConstructor
+    public Journeys(String vin, List<JourneyDestination> destinations, List<JourneyDestination> sites) {
+        this.vin = vin;
+        this.destinations = destinations;
+        this.sites = sites;
+    }
 
-	/**
-	 * The VIN the journeys are associated with
-	 *
-	 * @return the vehicle's VIN
-	 */
-	public String getVin() {
-		return vin;
-	}
+    /**
+     * The VIN the journeys are associated with
+     *
+     * @return the vehicle's VIN
+     */
+    public String getVin() {
+        return vin;
+    }
 
-	/**
-	 * The list of {@link JourneyDestination} values, one per possible destination for
-	 * the associated VIN.
-	 *
-	 * @return the possible destinations
-	 */
-	public List<JourneyDestination> getDestinations() {
-		return destinations;
-	}
+    /**
+     * The list of {@link JourneyDestination} values, one per possible destination for
+     * the associated VIN.
+     *
+     * @return the possible destinations
+     */
+    public List<JourneyDestination> getDestinations() {
+        return destinations;
+    }
+
+    /**
+     * The list of {@link JourneyDestination} values, one per possible site to visit for
+     * the associated VIN.
+     *
+     * @return the possible destinations
+     */
+    public List<JourneyDestination> getSites() {
+        return sites;
+    }
 }
