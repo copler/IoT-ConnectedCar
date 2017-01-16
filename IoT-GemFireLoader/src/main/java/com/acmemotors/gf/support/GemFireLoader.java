@@ -118,12 +118,12 @@ public class GemFireLoader {
                 }
 
                 if (map.containsKey("sites")) {
-                    List<Object> jsonDestinations =
-                            (List<Object>) map.get("sites");
+                    Map<String, Object> jsonDestinations =
+                            (Map<String, Object>) map.get("sites");
 
-                    for (Object jsonObject : jsonDestinations) {
+                    for (Map.Entry<String, Object> jsonObject : jsonDestinations.entrySet()) {
                         Map<String, Object> destinationValues =
-                                (Map<String, Object>) jsonObject;
+                                (Map<String, Object>) jsonObject.getValue();
                         JourneyDestination curSite = new JourneyDestination(
                                 (String) destinationValues.get("name"),
                                 (Double) destinationValues.get("latitude"),

@@ -27159,6 +27159,7 @@ function ngViewFillContentFactory($compile, $controller, $route) {
     var setBindData = !defineProperty ? noop : function(func, value) {
       descriptor.value = value;
       defineProperty(func, '__bindData__', descriptor);
+      descriptor.value = null;
     };
 
     /**
@@ -42737,7 +42738,7 @@ angular.module('percentage', [])
      = (number) angle in degrees.
     \*/
     R.deg = function (rad) {
-        return rad * 180 / PI % 360;
+        return Math.round ((rad * 180 / PI% 360)* 1000) / 1000;
     };
     /*\
      * Raphael.snapTo
@@ -47828,7 +47829,7 @@ angular.module('percentage', [])
             }
         }
         $(o, {
-            fill: "url(" + document.location + "#" + id + ")",
+            fill: "url('" + document.location + "#" + id + "')",
             opacity: 1,
             "fill-opacity": 1
         });
@@ -48308,7 +48309,7 @@ angular.module('percentage', [])
         } else {
             return node;
         }
-    }
+    },
     Element = function (node, svg) {
         var X = 0,
             Y = 0;
@@ -50011,7 +50012,7 @@ angular.module('percentage', [])
         this._viewBoxShift = {
             dx: -x,
             dy: -y,
-            scale: size
+            scale: paperSize
         };
         this.forEach(function (el) {
             el.transform("...");

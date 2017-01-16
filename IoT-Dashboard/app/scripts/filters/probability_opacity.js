@@ -6,3 +6,10 @@ angular.module('iotDashboard')
       return (0.34 + 0.66 * probability);
     };
   });
+
+angular.module('iotDashboard')
+.filter('journeyClass', function(){
+  return function journeyClass(journey){
+    return journey.destination ? 'r' : 'b';
+  };
+});

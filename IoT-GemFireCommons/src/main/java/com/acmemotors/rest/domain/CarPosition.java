@@ -119,7 +119,7 @@ public class CarPosition implements Serializable {
 
     private Map<String, PredictedDestination> predictions;
 
-    private List<PredictedSite> sitePredictions;
+    private Map<String, PredictedSite> sitePredictions;
 
     private Integer toInteger(Object value) {
         if(value instanceof Integer) {
@@ -151,6 +151,10 @@ public class CarPosition implements Serializable {
         } else {
             return null;
         }
+    }
+
+    public CarPosition() {
+
     }
 
     @SuppressWarnings("unchecked")
@@ -526,11 +530,11 @@ public class CarPosition implements Serializable {
         return predictions;
     }
 
-    public List<PredictedSite> getSitePredictions() {
+    public Map<String, PredictedSite> getSitePredictions() {
         return sitePredictions;
     }
 
-    public void setSitePredictions(List<PredictedSite> sitePredictions) {
+    public void setSitePredictions(Map<String, PredictedSite> sitePredictions) {
         this.sitePredictions = sitePredictions;
     }
 
@@ -546,6 +550,9 @@ public class CarPosition implements Serializable {
         private Double longitude;
         private Double mpgJourney;
         private Double probability;
+
+        public PredictedDestination() {
+        }
 
         public PredictedDestination(Double latitude, Double longitude, Double mpgJourney, Double probability) {
             this.latitude = latitude;
@@ -605,6 +612,9 @@ public class CarPosition implements Serializable {
         private double latitude;
         private double longitude;
         private double probability;
+
+        public PredictedSite() {
+        }
 
         public PredictedSite(double latitude, double longitude, double probability) {
             this.latitude = latitude;

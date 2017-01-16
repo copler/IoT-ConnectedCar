@@ -23,7 +23,22 @@ angular.module('iotDashboard')
           scaledSize: { height: 40, width: 30 }
         };
 
-          scope.id = scope.journey.id.toString();
+        scope.journeyMarkerIconR = {
+          url: 'images/icon_marker_r.png',
+          scaledSize: { height: 40, width: 30 }
+        };
+
+        scope.journeyMarkerIconG = {
+          url: 'images/icon_marker_g.png',
+          scaledSize: { height: 40, width: 30 }
+        };
+
+        scope.journeyMarkerIconB = {
+          url: 'images/icon_marker_b.png',
+          scaledSize: { height: 40, width: 30 }
+        };
+
+        scope.id = scope.journey.id.toString();
       },
       templateUrl: 'templates/journey_marker.html'
     };

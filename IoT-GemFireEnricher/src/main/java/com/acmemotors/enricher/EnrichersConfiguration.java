@@ -18,7 +18,6 @@ package com.acmemotors.enricher;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -103,7 +102,11 @@ public class EnrichersConfiguration {
         }
 
         @Transformer(inputChannel = "input", outputChannel = "output")
-        public CarPosition enrich(CarPosition payload) {
+        public CarPosition enrich(/*CarPosition*/Object object) {
+
+            // TODO this is a serious issue of XD that the same class cannot be matched due to different class loaders
+            Map<?, ?> map = mapper.convertValue(object, Map.class);
+            CarPosition payload = mapper.convertValue(map, CarPosition.class);
 
             try {
                 if (payload != null) {
@@ -126,9 +129,23 @@ public class EnrichersConfiguration {
             }
 
             // initialize list with default weight
-            Map<JourneySite, PredictedSite> sites = new LinkedHashMap<>();
-            for (JourneySite site : journeyHistory.getSites()) {
-                sites.put(site, new PredictedSite(site.getLatitude(), site.getLongitude(), site.getCount()));
+            Map<String, PredictedSite> sites = new LinkedHashMap<>();
+            for (String id : journeyHistory.getSites().keySet()) {
+                JourneySite journeySite = journeyHistory.getSites().get(id);
+                sites.put(id, new PredictedSite(journeySite.getLatitude(), journeySite.getLongitude(), journeySite.getCount()));
+            }
+
+            // apply site skipping
+            for (PredictedSite site : sites.values()) {
+                double c = getVectorsCos(payload.getLatitude(), payload.getLongitude(),
+                    site.getLatitude(),
+                    site.getLongitude(),
+                    payload.getPredictions().get("2").getLatitude(),
+                    payload.getPredictions().get("2").getLongitude()
+                );
+                if (c < 0) { // ~ 100 degrees
+                    site.setProbability(site.getProbability() / (-1 - Math.log(1 + c)));
+                }
             }
 
             // normalize as weight-average
@@ -142,8 +159,22 @@ public class EnrichersConfiguration {
                 }
             }
 
-            payload.setSitePredictions(new ArrayList<>(sites.values()));
+            payload.setSitePredictions(sites);
         }
+
+        private static double getVectorsCos(Double x0, Double y0, double x1, double y1, Double x2, Double y2) {
+            double dx1 = x1 - x0;
+            double dy1 = y1 - y0;
+            double dx2 = x2 - x0;
+            double dy2 = y2 - y0;
+            return (dx1 * dx2 + dy1 * dy2) / Math.sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2));
+        }
+
+//        public static void main(String[] args) {
+//            System.out.println(getVectorsCos(1.0, 1.0, 3.0, 2.0, 4.0, 4.0));
+//            System.out.println(getVectorsCos(1.0, 1.0, 3.0, 1.0, 1.0, 4.0));
+//            System.out.println(getVectorsCos(2.0, 1.0, 3.0, 1.0, 1.0, 4.0));
+//        }
 
         private static final Logger logger = LoggerFactory.getLogger(JourneySitesEnricher.class);
 

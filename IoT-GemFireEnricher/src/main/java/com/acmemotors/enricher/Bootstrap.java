@@ -1,9 +1,11 @@
 package com.acmemotors.enricher;
+
 import javax.annotation.PostConstruct;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-//@SpringBootApplication
+@SpringBootApplication
 public class Bootstrap {
 
     @PostConstruct

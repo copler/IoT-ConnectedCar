@@ -1,7 +1,7 @@
 package com.acmemotors.enricher.model;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Map;
 
 /**
  * A model object that represents the journeys site visits for a given VIN.
@@ -12,13 +12,13 @@ public class JourneyHistory implements Serializable {
 
     private String vin;
 
-    private List<JourneySite> sites;
+    private Map<String, JourneySite> sites;
 
     public JourneyHistory() {
 
     }
 
-    public JourneyHistory(String vin, List<JourneySite> sites) {
+    public JourneyHistory(String vin, Map<String, JourneySite> sites) {
         this.vin = vin;
         this.sites = sites;
     }
@@ -38,7 +38,7 @@ public class JourneyHistory implements Serializable {
      *
      * @return the possible destinations
      */
-    public List<JourneySite> getSites() {
+    public Map<String, JourneySite> getSites() {
         return sites;
     }
 }

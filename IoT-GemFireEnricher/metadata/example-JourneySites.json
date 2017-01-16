@@ -1,27 +1,25 @@
 [{
     "vin" : "SCEDT26T0BD007019",
-    "sites" : [{
-        "name" : "Barnes & Noble",
-        "latitude" : 32.8635256,
-        "longitude" : -96.776308,
-        "count" : 1
-    },
-    {
-        "name" : "NorthPark Center",
-        "latitude" : 32.8726992,
-        "longitude" : -96.7763294,
-        "count" : 2
-    },
-    {
-        "name" : "West Village",
-        "latitude" : 32.7949164,
-        "longitude" : -96.7792088,
-        "count" : 8
-    },
-    {
-        "name" : "The Rustic",
-        "latitude" : 32.8062072,
-        "longitude" : -96.7912251,
-        "count" : 4
-    }]
+    "sites":{
+        "a":{
+          "name":"Barnes & Noble",
+          "latitude":32.8635256,
+          "longitude":-96.776308
+        },
+        "b":{
+          "name":"NorthPark Center",
+          "latitude":32.8726992,
+          "longitude":-96.7763294
+        },
+        "c":{
+          "name":"West Village",
+          "latitude":32.7949164,
+          "longitude":-96.7792088
+        },
+        "d":{
+          "name":"The Rustic",
+          "latitude":32.8062072,
+          "longitude":-96.7912251
+        }
+      }
 }]

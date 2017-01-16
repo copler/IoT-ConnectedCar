@@ -1,0 +1,5 @@
+module delete --name processor:typeconversiontransformer
+module delete --name processor:journeysitesenricher
+module upload --file ../IoT-GemFireTransformer/build/libs/IoT-GemFireTransformer.jar --name typeconversiontransformer --type processor
+module upload --file ../IoT-GemFireEnricher/build/libs/IoT-GemFireEnricher.jar --name journeysitesenricher --type processor
+

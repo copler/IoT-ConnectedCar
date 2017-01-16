@@ -9,7 +9,7 @@ export GEMFIRE_IOT_CONF_DIR=/opt/pivotal/IoT-ConnectedCar/IoT-Scripts/conf
 export JAVA_OPTS="-Dgemfire.jmx-manager-start=true -Dgemfire.jmx-manager=true -Dgemfire.jmx-manager-http-port=0"
 gemfire-server $GEMFIRE_IOT_CONF_DIR/iot-demo.xml &
 
-sleep 10;
+sleep 20;
 
 # Load the journeys into GemFire
 java -jar /opt/pivotal/IoT-ConnectedCar/IoT-GemFireLoader/build/libs/IoT-GemFireLoader.jar /opt/pivotal/data/model/clusters.json

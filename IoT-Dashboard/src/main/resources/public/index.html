@@ -65,7 +65,7 @@
         ng-click="setCurrentJourney(journey)"
         ng-class="(getCurrentJourney() == journey) ? 'current-journey' : ''">
 
-        <div class="journey-icon" style="opacity: {{journey.probability | probabilityOpacity}}">{{journey.id}}</div>
+        <div class="journey-icon journey-icon-{{journey | journeyClass}}" style="opacity: {{journey.probability | probabilityOpacity}}">{{journey.id}}</div>
         <div class="journey-name">{{journey.name}}</div>
         <div>
           <span class="journey-attribute-label">Probability</span>

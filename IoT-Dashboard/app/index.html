@@ -70,7 +70,7 @@
         ng-click="setCurrentJourney(journey)"
         ng-class="(getCurrentJourney() == journey) ? 'current-journey' : ''">
 
-        <div class="journey-icon" style="opacity: {{journey.probability | probabilityOpacity}}">{{journey.id}}</div>
+        <div class="journey-icon journey-icon-{{journey | journeyClass}}" style="opacity: {{journey.probability | probabilityOpacity}}">{{journey.id}}</div>
         <div class="journey-name">{{journey.name}}</div>
         <div>
           <span class="journey-attribute-label">Probability</span>
@@ -88,7 +88,7 @@
     </div>
 
 
-    <script src='http://maps.googleapis.com/maps/api/js?sensor=false'></script>
+    <script src='http://maps.googleapis.com/maps/api/js?key=AIzaSyDagj4vr8gAGYhsVRMKnhx-_OuOwys0i8U'></script>
     <!-- build:js(.) scripts/vendor.js -->
     <!-- bower:js -->
     <script src="bower_components/es5-shim/es5-shim.js"></script>
