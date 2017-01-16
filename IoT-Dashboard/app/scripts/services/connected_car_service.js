@@ -86,15 +86,28 @@ angular.module('iotDashboard')
                 car.mpg = Math.round(sourceData["mpgInstantaneous"] * 10) / 10;
                 car.range = Math.round(sourceData["remainingRange"] * 10) / 10;
 
-                var newJourneyDataHash = sourceData["predictions"];
                 _.each(journeys[vin], function(journey) {
-                    var newJourneyData = newJourneyDataHash[journey.id];
+                    journey.probability = 0;
+                });
+
+                var newDJourneyDataHash = sourceData["predictions"];
+                _.each(journeys[vin], function(journey) {
+                    var newJourneyData = newDJourneyDataHash[journey.id];
                     if (newJourneyData && newJourneyData['probability']) {
                         journey.probability = newJourneyData['probability'];
                     } else {
                         journey.probability = 0;
                     }
                 });
+
+                var newSJourneyDataHash = sourceData["sitePredictions"];
+                _.each(journeys[vin], function(journey) {
+                    var newJourneyData = newSJourneyDataHash[journey.id];
+                    if (newJourneyData && newJourneyData['probability']) {
+                        journey.probability = newJourneyData['probability'];
+                    }
+                });
+
             }).
             error(function() {
                 car.vin = "";
@@ -113,12 +126,15 @@ angular.module('iotDashboard')
         $http({method: 'GET', url: configuration.baseUrl + '/journeyses/' + vin}).
             success(function (data) {
                 var curJourneys = [];
-                var journeyId = 0;
-                _.each(data["destinations"], function (journeyData) {
+
+                for (var i = 0; i < data["destinations"].length; i++) {
+                    var journeyData = data["destinations"][i];
                     var journeyName = journeyData.name;
 
+                    var journeyId = '0123456789'[i];
+
                     console.log("journeyName = " + journeyName + " length = " + journeyName.length);
-                    if(journeyName.length == 0) {
+                    if (journeyName.length == 0) {
                         journeyName = journeyId;
                     }
 
@@ -127,7 +143,8 @@ angular.module('iotDashboard')
                         id: journeyId,
                         latitude: journeyData.latitude,
                         longitude: journeyData.longitude,
-                        probability: 0
+                        probability: 0,
+                        destination: 1 // marker
                     };
 
                     var geocoder = new google.maps.Geocoder();
@@ -145,9 +162,46 @@ angular.module('iotDashboard')
                         }
                     });
 
-                    journeyId++;
                     curJourneys.push(journey);
-                });
+                }
+
+                for (var i = 0; i < data["sites"].length; i++) {
+                    var journeyData = data["sites"][i];
+                    var journeyName = journeyData.name;
+
+                    var journeyId = 'abcdefghij'[i];
+
+                    console.log("journeyName = " + journeyName + " length = " + journeyName.length);
+                    if (journeyName.length == 0) {
+                        journeyName = journeyId;
+                    }
+
+                    var journey = {
+                        name: journeyName,
+                        id: journeyId,
+                        latitude: journeyData.latitude,
+                        longitude: journeyData.longitude,
+                        probability: 0,
+                        destination: 0 // marker
+                    };
+
+                    var geocoder = new google.maps.Geocoder();
+                    var latlng = new google.maps.LatLng(journeyData.latitude, journeyData.longitude);
+
+                    geocoder.geocode({ 'latLng': latlng }, function (results, status) {
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            if (results[1]) {
+                                journey.name = results[1].formatted_address;
+                            } else {
+                                journey.name = 'Location not found';
+                            }
+                        } else {
+                            console.log('Geocoder failed due to: ' + status);
+                        }
+                    });
+
+                    curJourneys.push(journey);
+                }
 
                 journeys[vin] = curJourneys;
                 getCarPosition(vin);
