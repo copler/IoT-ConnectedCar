@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
@@ -85,6 +86,8 @@ public class EnrichersConfiguration {
 
         private Map<String, JourneyHistory> journeyHistoryMap;
 
+        private Map<String, Map<String, Double>> journeySiteDistances;
+
         @PostConstruct
         protected void setup() {
             if (modelPath != null) {
@@ -97,6 +100,17 @@ public class EnrichersConfiguration {
                 journeyHistoryMap = new HashMap<>();
                 for (JourneyHistory journeyHistory : journeyHistories) {
                     journeyHistoryMap.put(journeyHistory.getVin(), journeyHistory);
+                }
+
+                journeySiteDistances = new ConcurrentHashMap<>();
+                for (JourneyHistory journeyHistory : journeyHistories) {
+                    Map<String, Double> map = journeySiteDistances.get(journeyHistory.getVin());
+                    if (map == null) {
+                        journeySiteDistances.put(journeyHistory.getVin(), map = new ConcurrentHashMap<>());
+                    }
+                    for (String id : journeyHistory.getSites().keySet()) {
+                        map.put(id, Double.MAX_VALUE); // initialize with max value
+                    }
                 }
             }
         }
@@ -136,7 +150,20 @@ public class EnrichersConfiguration {
             }
 
             // apply site skipping
-            for (PredictedSite site : sites.values()) {
+            for (String id : sites.keySet()) {
+                PredictedSite site = sites.get(id);
+
+                double dCur = Math.hypot(payload.getLatitude() - site.getLatitude(), payload.getLongitude() - site.getLongitude());
+                double dMin = dCur;
+
+                 // get distance
+                if (journeySiteDistances.containsKey(payload.getVin()) && journeySiteDistances.get(payload.getVin()).containsKey(id)) {
+                    dMin = journeySiteDistances.get(payload.getVin()).get(id);
+                    if (dCur < dMin) {
+                        journeySiteDistances.get(payload.getVin()).put(id, dCur);
+                    }
+                }
+
                 double c = getVectorsCos(payload.getLatitude(), payload.getLongitude(),
                     site.getLatitude(),
                     site.getLongitude(),
@@ -145,6 +172,7 @@ public class EnrichersConfiguration {
                 );
                 if (c < 0) { // ~ 100 degrees
                     site.setProbability(site.getProbability() / (1 - Math.log(1 + c)));
+                    site.setProbability(site.getProbability() * (dMin / dCur));
                 }
             }
 
@@ -167,7 +195,7 @@ public class EnrichersConfiguration {
             double dy1 = y1 - y0;
             double dx2 = x2 - x0;
             double dy2 = y2 - y0;
-            return (dx1 * dx2 + dy1 * dy2) / Math.sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2));
+            return (dx1 * dx2 + dy1 * dy2) / Math.hypot(dx1, dy1) / Math.hypot(dx2, dy2);
         }
 
 //        public static void main(String[] args) {
