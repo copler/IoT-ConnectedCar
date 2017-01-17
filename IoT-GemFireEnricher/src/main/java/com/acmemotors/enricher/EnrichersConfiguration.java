@@ -144,7 +144,7 @@ public class EnrichersConfiguration {
                     payload.getPredictions().get("2").getLongitude()
                 );
                 if (c < 0) { // ~ 100 degrees
-                    site.setProbability(site.getProbability() / (-1 - Math.log(1 + c)));
+                    site.setProbability(site.getProbability() / (1 - Math.log(1 + c)));
                 }
             }
 
