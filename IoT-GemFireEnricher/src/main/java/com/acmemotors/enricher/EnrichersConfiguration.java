@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -44,6 +46,7 @@ import org.springframework.messaging.MessageChannel;
 import com.acmemotors.enricher.model.JourneyHistory;
 import com.acmemotors.enricher.model.JourneySite;
 import com.acmemotors.rest.domain.CarPosition;
+import com.acmemotors.rest.domain.CarPosition.PredictedDestination;
 import com.acmemotors.rest.domain.CarPosition.PredictedSite;
 
 /**
@@ -86,31 +89,47 @@ public class EnrichersConfiguration {
 
         private Map<String, JourneyHistory> journeyHistoryMap;
 
-        private Map<String, Map<String, Double>> journeySiteDistances;
+        private Map<String, Map<String, double[]>> journeySiteDistances;
 
         @PostConstruct
         protected void setup() {
-            if (modelPath != null) {
-                List<JourneyHistory> journeyHistories;
-                try (FileInputStream fis = new FileInputStream(new File(modelPath))) {
-                    journeyHistories = mapper.readValue(fis, new TypeReference<List<JourneyHistory>>() {});
-                } catch (IOException e) {
-                    throw new IllegalStateException("Unable to read specified model: " + modelPath, e);
-                }
-                journeyHistoryMap = new HashMap<>();
-                for (JourneyHistory journeyHistory : journeyHistories) {
-                    journeyHistoryMap.put(journeyHistory.getVin(), journeyHistory);
-                }
+            Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(new Runnable() {
 
-                journeySiteDistances = new ConcurrentHashMap<>();
-                for (JourneyHistory journeyHistory : journeyHistories) {
-                    Map<String, Double> map = journeySiteDistances.get(journeyHistory.getVin());
-                    if (map == null) {
-                        journeySiteDistances.put(journeyHistory.getVin(), map = new ConcurrentHashMap<>());
+                long lastModificationTimestamp;
+
+                @Override
+                public void run() {
+                    File modelFile = new File(modelPath);
+                    if (lastModificationTimestamp < modelFile.lastModified()) {
+                        lastModificationTimestamp = modelFile.lastModified();
+                        initialize(modelFile);
                     }
-                    for (String id : journeyHistory.getSites().keySet()) {
-                        map.put(id, Double.MAX_VALUE); // initialize with max value
-                    }
+
+                }
+            }, 0, 5, TimeUnit.SECONDS);
+        }
+
+
+        protected void initialize(File modelFile) {
+            List<JourneyHistory> journeyHistories;
+            try (FileInputStream fis = new FileInputStream(modelFile)) {
+                journeyHistories = mapper.readValue(fis, new TypeReference<List<JourneyHistory>>() {});
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to read specified model: " + modelPath, e);
+            }
+            journeyHistoryMap = new HashMap<>();
+            for (JourneyHistory journeyHistory : journeyHistories) {
+                journeyHistoryMap.put(journeyHistory.getVin(), journeyHistory);
+            }
+
+            journeySiteDistances = new ConcurrentHashMap<>();
+            for (JourneyHistory journeyHistory : journeyHistories) {
+                Map<String, double[]> map = journeySiteDistances.get(journeyHistory.getVin());
+                if (map == null) {
+                    journeySiteDistances.put(journeyHistory.getVin(), map = new ConcurrentHashMap<>());
+                }
+                for (String id : journeyHistory.getSites().keySet()) {
+                    map.put(id, new double[] { 0, Double.MAX_VALUE, Double.MAX_VALUE }); //
                 }
             }
         }
@@ -149,45 +168,101 @@ public class EnrichersConfiguration {
                 sites.put(id, new PredictedSite(journeySite.getLatitude(), journeySite.getLongitude(), journeySite.getCount()));
             }
 
-            // apply site skipping
+            // normalize as weight-average
+            normalize(sites);
+
+            final double tail = 0.02;
+
+            // calculate distances
             for (String id : sites.keySet()) {
                 PredictedSite site = sites.get(id);
 
-                double dCur = Math.hypot(payload.getLatitude() - site.getLatitude(), payload.getLongitude() - site.getLongitude());
-                double dMin = dCur;
+                double dC = Math.hypot(payload.getLatitude() - site.getLatitude(), payload.getLongitude() - site.getLongitude());
 
-                 // get distance
-                if (journeySiteDistances.containsKey(payload.getVin()) && journeySiteDistances.get(payload.getVin()).containsKey(id)) {
-                    dMin = journeySiteDistances.get(payload.getVin()).get(id);
-                    if (dCur < dMin) {
-                        journeySiteDistances.get(payload.getVin()).put(id, dCur);
-                    }
+                double[] distances = journeySiteDistances.get(payload.getVin()).get(id);
+                distances[0] = dC;
+
+                if (Math.abs(dC - distances[1]) / dC > tail * 10) { // reset
+                    distances[0] = dC;
+                    distances[1] = Double.MAX_VALUE;
+                    distances[2] = Double.MAX_VALUE;
                 }
 
-                double c = getVectorsCos(payload.getLatitude(), payload.getLongitude(),
-                    site.getLatitude(),
-                    site.getLongitude(),
-                    payload.getPredictions().get("2").getLatitude(),
-                    payload.getPredictions().get("2").getLongitude()
-                );
-                if (c < 0) { // ~ 100 degrees
-                    site.setProbability(site.getProbability() / (1 - Math.log(1 + c)));
-                    site.setProbability(site.getProbability() * (dMin / dCur));
+                double dT = distances[1];
+
+                // calculate tail
+                if (Math.abs(dC - dT) / dC > tail) {
+                    if (dC > dT) {
+                        dT = dC * (1 - tail);
+                    }
+                    if (dC < dT) {
+                        dT = dC * (1 + tail);
+                    }
+                    distances[1] = dT;
+                }
+
+                // calculate minimal
+                double dM = distances[2];
+                if (dC < dM) {
+                    distances[2] = dC;
+                }
+
+                if (dC > dT) { // moving away
+                    site.setProbability(0);
                 }
             }
 
+            // calculate angle of deviation from destination point weighted-average by direction probability
+            for (String id : sites.keySet()) {
+                PredictedSite st = sites.get(id);
+                if (st.getProbability() == 0) {
+                    continue;
+                }
+
+                double sum = 0;
+                for (PredictedDestination pd : payload.getPredictions().values()) {
+
+                    double cos = getVectorsCos(payload.getLatitude(), payload.getLongitude(), // current position
+                        st.getLatitude(), st.getLongitude(), // potential site
+                        pd.getLatitude(), pd.getLongitude() // potential destination
+                    );
+                    double factor;
+
+                    if (cos > Math.cos((90 - 5) * degree)) {
+                        factor = 1;
+                    } else {
+                        factor = 0;
+                    }
+
+                    double dD = Math.hypot(payload.getLatitude() - pd.getLatitude(), payload.getLongitude() - pd.getLongitude());
+                    double dS = Math.hypot(payload.getLatitude() - st.getLatitude(), payload.getLongitude() - st.getLongitude());
+                    if (dS > dD) {
+                        factor = 0;
+                    }
+
+                    sum += factor * pd.getProbability();
+                }
+                st.setProbability(st.getProbability() * sum);
+            }
+
             // normalize as weight-average
+            normalize(sites);
+
+            payload.setSitePredictions(sites);
+        }
+
+        private void normalize(Map<String, PredictedSite> sites) {
             double sum = 0;
             for (PredictedSite site : sites.values()) {
                 sum += site.getProbability();
             }
             if (sum != 0) {
                 for (PredictedSite site : sites.values()) {
-                    site.setProbability(site.getProbability() / sum);
+                    if (site.getProbability() > 0) {
+                        site.setProbability(site.getProbability() / sum);
+                    }
                 }
             }
-
-            payload.setSitePredictions(sites);
         }
 
         private static double getVectorsCos(Double x0, Double y0, double x1, double y1, Double x2, Double y2) {
@@ -204,7 +279,9 @@ public class EnrichersConfiguration {
 //            System.out.println(getVectorsCos(2.0, 1.0, 3.0, 1.0, 1.0, 4.0));
 //        }
 
-        private static final Logger logger = LoggerFactory.getLogger(JourneySitesEnricher.class);
+        private static double degree = Math.PI / 180;
+
+        private static Logger logger = LoggerFactory.getLogger(JourneySitesEnricher.class);
 
     }
 }

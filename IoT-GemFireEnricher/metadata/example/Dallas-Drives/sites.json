@@ -1,0 +1,47 @@
+[{
+    "vin" : "SCEDT26T0BD007019",
+    "sites" : {
+        "a": {
+            "name" : "Cafe Brazil",
+            "latitude" : 32.977182,
+            "longitude" : -96.717825,
+            "count" : 4
+        },
+        "b": {
+            "name" : "NorthPark Center",
+            "latitude" : 32.8726992,
+            "longitude" : -96.7763294,
+            "count" : 16
+        },
+        "c": {
+            "name" : "Gui-Rock Korean BBQ",
+            "latitude" : 32.9847769,
+            "longitude" : -96.9160035,
+            "count" : 2
+        },
+        "d": {
+            "name" : "The Rustic",
+            "latitude" : 32.8062072,
+            "longitude" : -96.7912251,
+            "count" : 8
+        },
+        "e": {
+            "name" : "Saigon Block",
+            "latitude" : 32.960068,
+            "longitude" : -96.6863511,
+            "count" : 4
+        },
+        "f": {
+            "name" : "Roman Cucina",
+            "latitude" : 32.9509909,
+            "longitude" : -96.7731016,
+            "count" : 7
+        },
+        "g": {
+            "name" : "Pera Wine & Tapas",
+            "latitude" : 32.9514344,
+            "longitude" : -96.8010038,
+            "count" : 3
+        }
+    }
+}]

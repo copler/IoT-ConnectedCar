@@ -269,6 +269,10 @@ angular.module('iotDashboard')
                     var journeyData = data["destinations"][i];
                     var journeyName = journeyData.name;
 
+                    if (i > 9) {
+                        continue;
+                    }
+
                     var journeyId = '0123456789'[i];
 
                     console.log("journeyName = " + journeyName + " length = " + journeyName.length);
@@ -307,7 +311,11 @@ angular.module('iotDashboard')
                     var journeyData = data["sites"][i];
                     var journeyName = journeyData.name;
 
-                    var journeyId = 'abcdefghij'[i];
+                    if (i > 25) {
+                        continue;
+                    }
+
+                    var journeyId = 'abcdefghijklmnopqrstuvwxyz'[i];
 
                     console.log("journeyName = " + journeyName + " length = " + journeyName.length);
                     if (journeyName.length == 0) {
