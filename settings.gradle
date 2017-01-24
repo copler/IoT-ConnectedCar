@@ -2,6 +2,7 @@ rootProject.name = 'IoT-ConnectedCar'
 
 include 'IoT-CarSimulator'
 include 'IoT-Dashboard'
+include 'IoT-Dashboard-New'
 include 'IoT-GemFireCommons'
 include 'IoT-GemFireLoader'
 include 'IoT-Scripts'

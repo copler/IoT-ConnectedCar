@@ -1,0 +1,14 @@
+---
+
+applications:
+
+- name: IoT-Dashboard-New
+  memory: 512M
+  buildpack: java_buildpack
+  path: IoT-Dashboard-New/build/libs/IoT-Dashboard.jar
+  instances: 1
+  random-route: false
+  route: iot-dashboard-new
+  host: iot-dashboard-new
+  env:
+    SPRING_PROFILES_ACTIVE: pcf

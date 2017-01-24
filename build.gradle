@@ -320,6 +320,80 @@ project('IoT-Dashboard') {
     }
 }
 
+project('IoT-Dashboard-New') {
+	apply plugin: 'grunt'
+	bootRepackage {
+		enabled = true
+	}
+
+	dependencies {
+		compile "org.springframework.boot:spring-boot-autoconfigure"
+		compile "org.springframework.boot:spring-boot-starter-web"
+		testCompile("junit:junit")
+	}
+
+	node {
+		version = '0.10.34'
+		download = true
+//		npmVersion = '2.1.18'
+	}
+
+	task cleanDist(type: Delete) {
+		description = "Remove the contents of the 'public' directory"
+		delete 'public'
+	}
+
+	task cleanNodeModules(type: Delete) {
+		description = "Remove the 'node_modules' directory"
+		delete 'node_modules'
+	}
+
+	task cleanBowerFiles(type: Delete) {
+		description = "Remove Bower directories"
+		delete '.bower_cache'
+		delete 'bower_components'
+	}
+
+	// Install the bower components for front-end library management
+	task bower(type: Exec){
+		commandLine bowerCommand, 'install'
+	}
+
+	tasks['grunt_build'].dependsOn(['npmSetup', 'npmInstall', 'installGrunt', 'bower']);
+
+	task setupUI(dependsOn: ['grunt_build', 'build']) { description = "Build the Admin UI using Grunt" }
+
+	grunt_build.shouldRunAfter 'installGrunt'
+	installGrunt.shouldRunAfter 'npmInstall'
+
+	task cleanUI(dependsOn: [
+			'clean',
+			'cleanDist',
+			'cleanNodeModules',
+			'cleanBowerFiles'
+	]) { description = "Clean the Dashboard dist, node modules and bower files" }
+
+//	clean {
+//		it.dependsOn tasks['cleanDist']
+//	}
+//
+//	build {
+//		it.dependsOn tasks['grunt_build']
+//	}
+
+	apply plugin: 'cloudfoundry'
+
+	cloudfoundry {
+		target = "https://api.run.pivotal.io"
+		space = "development"
+		file = file("./build/libs/IoT-Dashboard.jar")
+		uri = "test-d.cfapps.io"
+		memory = 256
+		instances = 1
+		services { }
+	}
+}
+
 project('IoT-GemFireLoader') {
     bootRepackage {
         enabled = true
